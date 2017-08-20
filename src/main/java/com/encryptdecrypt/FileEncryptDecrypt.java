@@ -41,7 +41,7 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
     catch(Exception e){return false;}
   }
 
-  protected static byte[] Apply(int cipherMode, byte[] original, String key)
+  private static byte[] Apply(int cipherMode, byte[] original, String key)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,
@@ -93,7 +93,7 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
     return outputBytes;//reurns the final byte array.
   }
 
-  public static byte[] EncryptFile(byte[] original, String key)
+  public static byte[] Encrypt(byte[] original, String key)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,
@@ -106,7 +106,7 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
     return Apply(Cipher.ENCRYPT_MODE, original, key);
   }
 
-  public static byte[] DecryptFile(byte[] original, String key)
+  public static byte[] Decrypt(byte[] original, String key)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,

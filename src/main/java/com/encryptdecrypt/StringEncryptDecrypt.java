@@ -42,7 +42,7 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     catch(Exception e){return false;}
   }
 
-  public static String EncryptString(String oName, String key)
+  public static String Encrypt(String oName, String key)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,
@@ -77,7 +77,7 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     return encodedaName;//returns the new encrypted encode string.
   }
 
-  public static String DecryptString(String oName, String key)
+  public static String Decrypt(String oName, String key)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,
