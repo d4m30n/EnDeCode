@@ -60,19 +60,7 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     IvParameterSpec ivspec = new IvParameterSpec(IV);//gets the IV parameter.
     cipher.init(Cipher.ENCRYPT_MODE,secretKey,ivspec);//loads up the cipher with the mode key and iv.
     byte[] aName = cipher.doFinal(oName.getBytes());//encrypts the string.
-    byte[] returnName = new byte[aName.length+EN.length+IVSIZE];//creates a new array that adds room for the tail on the end.
-    int bytesDone = 0;//keeps track of the bytes that have been done.
-    for(int i = bytesDone; i < aName.length;i++){//loops through the encrypted data and adds to the new array.
-      returnName[i] = aName[i];bytesDone++;//adds the data to array and adds one to the bytes done.
-    }
-    int IVPlace = 0;//keeps track of the IV place.
-    for(int i = bytesDone; i < returnName.length-EN.length; i++){//loops through and adds the IV to the end of the data.
-      returnName[i] = IV[IVPlace];IVPlace++;bytesDone++;//adds the iv to the end of the data and adds one to the bytes done.
-    }
-    int ENPlace = 0;//keeps track of the EN place.
-    for(int i = bytesDone; i <returnName.length;i++){//loops through and adds the ecrypted byte to the end.
-      returnName[i] = EN[ENPlace];ENPlace++;bytesDone++;//adds the EN byte and adds one to the bytes done.
-    }
+    addTail(aName, IV);
     String encodedaName = Base64.getEncoder().encodeToString(returnName);//encodes the string to base64.
     return encodedaName;//returns the new encrypted encode string.
   }
