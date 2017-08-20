@@ -68,28 +68,11 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
     IvParameterSpec ivspec = new IvParameterSpec(IV);//gets the IV paramater.
     cipher.init(cipherMode, secretKey, ivspec);//loads in the cipher with the mode key and iv.
     if(cipherMode == Cipher.DECRYPT_MODE){//if the cypher is decrypting remove the tail bytes on the end.
-      byte[] tmp = original;//holds the original undecrypted array.
-      original = new byte[original.length-EN.length-IVSIZE];//creates the new smaller array.
-      for(int i = 0; i < original.length; i++){//loops through only adding the data to be decrypted.
-        original[i] = tmp[i];//adds the data one byte at a time.
-      }
+      original = removeTail(original);
     }
     byte[] outputBytes = cipher.doFinal(original);//encrypts the bytes or decrypts depending.
     if(cipherMode == Cipher.ENCRYPT_MODE){//if the file is being encrypted add the tail bytes.
-      byte[] tmp = outputBytes;//holds the original encrypted bytes.
-      int bytesDone = 0;//keeps track of the number of bytes that are done.
-      outputBytes = new byte[outputBytes.length+EN.length+IVSIZE];//creates the new larger array to hold information.
-      for(int i = bytesDone; i < tmp.length; i++){//adds the encrypted data to the new byte array.
-        outputBytes[i] = tmp[i];bytesDone++;//adds the data and adds one to the bytes done.
-      }
-      int IVPlace = 0;//holds the iv place.
-      for(int i = bytesDone; i < outputBytes.length-EN.length; i++){//loops through and adds the IV to the file.
-        outputBytes[i] = IV[IVPlace];IVPlace++;bytesDone++;//adds the IV and add one to the bytes done.
-      }
-      int ENPlace = 0;//keeps track of the EN place.
-      for(int i = bytesDone; i < outputBytes.length; i++){//loops through and adds the byte to say its encrypted.
-        outputBytes[i] = EN[ENPlace];ENPlace++;bytesDone++;//adds the encryption byte and adds one to bytes done.
-      }
+      outputBytes = addTail(outputBytes, IV);
     }
     return outputBytes;//reurns the final byte array.
   }
