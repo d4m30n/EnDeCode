@@ -58,7 +58,7 @@ public class EncryptDecrypt{
 
   protected static void addTail(byte[] data, byte[] IV){
     byte[] tmp = data;
-    data = new byte[tmp.length+tailSIze];
+    data = new byte[tmp.length+tailSize];
     int place = 0;
     for(byte a : tmp){
       data[place] = a;
@@ -66,6 +66,15 @@ public class EncryptDecrypt{
     }
     place = addIV(data,IV,place);
     place = addEN(data, place);
+  }
+
+  protected static void removeTail(byte[] data){
+    byte[] tmp = data;
+    data = new byte[tmp.length-tailSize];
+    int place = 0;
+    for(int i = 0; i < data.length; i++){
+      data[i] = tmp[i];
+    }
   }
 
 }

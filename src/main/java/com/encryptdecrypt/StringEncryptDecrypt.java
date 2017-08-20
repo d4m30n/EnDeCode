@@ -61,7 +61,7 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     cipher.init(Cipher.ENCRYPT_MODE,secretKey,ivspec);//loads up the cipher with the mode key and iv.
     byte[] aName = cipher.doFinal(oName.getBytes());//encrypts the string.
     addTail(aName, IV);
-    String encodedaName = Base64.getEncoder().encodeToString(returnName);//encodes the string to base64.
+    String encodedaName = Base64.getEncoder().encodeToString(aName);//encodes the string to base64.
     return encodedaName;//returns the new encrypted encode string.
   }
 
@@ -85,11 +85,8 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     }
     IvParameterSpec ivspec = new IvParameterSpec(IV);//get the IV parameter.
     cipher.init(Cipher.DECRYPT_MODE,secretKey,ivspec);//loads the cipher with the mode key and iv.
-    byte[] removedtail = new byte[decodedoName.length-EN.length-IVSIZE];//create a smaler array to hold just the data.
-    for(int i = 0; i < decodedoName.length-EN.length-IVSIZE;i++){//loops through the array removing the tail end.
-      removedtail[i] = decodedoName[i];//puts the data in the new array.
-    }
-    byte[] aName = cipher.doFinal(removedtail);//decrypts the data.
+    removeTail(decodedoName);
+    byte[] aName = cipher.doFinal(decodedoName);//decrypts the data.
     return new String(aName);//returns the new unencrypted string.
   }
 
