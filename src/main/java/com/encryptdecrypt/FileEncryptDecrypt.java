@@ -26,6 +26,7 @@ import java.security.InvalidAlgorithmParameterException;
 public class FileEncryptDecrypt extends StringEncryptDecrypt{
 
   public static boolean isEncrypted(byte[] oData){
+    //test
     try{//catches an and all errors.
       int lenCheck = oData.length-EN.length;//checks to make sure the lenght is not less than 0;
       if(lenCheck < 0) return false;//return false if the lenght is less that 0.
