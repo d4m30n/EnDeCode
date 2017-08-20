@@ -78,11 +78,7 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     Key secretKey = getKey(key,"");
     Cipher cipher = Cipher.getInstance(TRANSFORM);//gets the cipher with the correct transform.
     byte[] decodedoName = Base64.getDecoder().decode(oName);//decodes the string into bytes from base64.
-    byte[] IV = new byte[IVSIZE];//gets the new IV array.
-    int IVPlace = 0;//keeps track of the IV place.
-    for(int i = decodedoName.length-EN.length-IVSIZE; i < decodedoName.length-EN.length; i++){//loops through and gets the IV array.
-      IV[IVPlace] = decodedoName[i];IVPlace++;//adds the IV array to be used.
-    }
+    byte[] IV = getIV(decodedoName);
     IvParameterSpec ivspec = new IvParameterSpec(IV);//get the IV parameter.
     cipher.init(Cipher.DECRYPT_MODE,secretKey,ivspec);//loads the cipher with the mode key and iv.
     decodedoName = removeTail(decodedoName);

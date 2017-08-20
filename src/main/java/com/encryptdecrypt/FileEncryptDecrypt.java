@@ -60,10 +60,7 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
       secureRandom.nextBytes(IV);//generates a new random IV.
     }
     else{//if the file is being decrypted.
-      int IVPlace = 0;//holds the palce in the IV array.
-      for(int i = original.length-EN.length-IVSIZE; i < original.length-EN.length; i++){//loops through the IV bytes stored in the array.
-        IV[IVPlace] = original[i];IVPlace++;//adds the IV to the IV array.
-      }
+      IV = getIV(original);
     }
     IvParameterSpec ivspec = new IvParameterSpec(IV);//gets the IV paramater.
     cipher.init(cipherMode, secretKey, ivspec);//loads in the cipher with the mode key and iv.

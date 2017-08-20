@@ -78,4 +78,14 @@ public class EncryptDecrypt{
     return data;
   }
 
+  protected static byte[] getIV(byte[] data){
+    byte[] IV = new byte[IVSIZE];
+    int DPlace = data.length-tailSize;
+    for(int i = 0; i < IV.length; i++){
+      IV[i] = data[DPlace];
+      DPlace++;
+    }
+    return IV;
+  }
+
 }
