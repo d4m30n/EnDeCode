@@ -60,9 +60,7 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     IvParameterSpec ivspec = new IvParameterSpec(IV);//gets the IV parameter.
     cipher.init(Cipher.ENCRYPT_MODE,secretKey,ivspec);//loads up the cipher with the mode key and iv.
     byte[] aName = cipher.doFinal(oName.getBytes());//encrypts the string.
-    System.out.println("BSIZE: "+aName.length);
     aName = addTail(aName, IV);
-    System.out.println("ASIZE: "+aName.length);
     String encodedaName = Base64.getEncoder().encodeToString(aName);//encodes the string to base64.
     return encodedaName;//returns the new encrypted encode string.
   }
