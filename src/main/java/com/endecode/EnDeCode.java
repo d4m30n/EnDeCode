@@ -1,5 +1,5 @@
-package EnDeCode;
+package com.endecode;
 
 public class EnDeCode{
-  
+
 }
