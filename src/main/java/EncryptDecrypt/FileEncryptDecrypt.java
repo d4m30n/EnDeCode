@@ -15,6 +15,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.spec.InvalidKeySpecException;
 
 public class FileEncryptDecrypt extends EncryptDecrypt{
 
@@ -26,7 +27,8 @@ public class FileEncryptDecrypt extends EncryptDecrypt{
   BadPaddingException,
   IOException,
   IllegalBlockSizeException,
-  InvalidAlgorithmParameterException{
+  InvalidAlgorithmParameterException,
+  InvalidKeySpecException{
     return Apply(Cipher.ENCRYPT_MODE, original, key);
   }
 
@@ -38,7 +40,8 @@ public class FileEncryptDecrypt extends EncryptDecrypt{
   BadPaddingException,
   IOException,
   IllegalBlockSizeException,
-  InvalidAlgorithmParameterException{
+  InvalidAlgorithmParameterException,
+  InvalidKeySpecException{
     return Apply(Cipher.DECRYPT_MODE, original, key);
   }
 }
