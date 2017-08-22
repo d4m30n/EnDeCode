@@ -97,6 +97,8 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
   IllegalBlockSizeException,
   InvalidAlgorithmParameterException,
   InvalidKeySpecException{
+    if(!(isEncrypted(original)))
+      throw new IllegalBlockSizeException("invalid Encryption");
     return Apply(Cipher.DECRYPT_MODE, original, key);
   }
 }
