@@ -28,15 +28,16 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
   private static FileEncryptDecrypt instance = null;
 
   public static FileEncryptDecrypt getInstance(String password) throws Exception{
+    return getInstance(password,false);
+  }
+
+  public static FileEncryptDecrypt getInstance(String password, boolean genNewKeys) throws Exception{
     if(instance == null){
       instance = new FileEncryptDecrypt();
     }
-    if(CodeInstance == null){
+    if(CodeInstance == null || genNewKeys){
       CodeInstance = EnDeCode.getInstance(password);
-      CodeInstance.loadKeys(password);
-    }
-    else{
-      CodeInstance.setPassword(password);
+      CodeInstance.loadKeys(password, genNewKeys);
     }
     return (FileEncryptDecrypt) instance;
   }

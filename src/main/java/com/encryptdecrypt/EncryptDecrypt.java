@@ -46,10 +46,6 @@ public class EncryptDecrypt{
     return new SecretKeySpec(tmp.getEncoded(), ALGORITHM);//returns the new key with the algoritham being used.
   }
 
-  public void changePassword(String password) throws Exception{
-    CodeInstance.setPassword(password);
-  }
-
   private static int addIV(byte[] data, byte[] IV, int place){
     for(byte a : IV){
       data[place] = a;
