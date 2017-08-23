@@ -24,8 +24,24 @@ import javax.crypto.spec.IvParameterSpec;
 import java.security.InvalidAlgorithmParameterException;
 
 public class StringEncryptDecrypt extends EncryptDecrypt{
+  protected StringEncryptDecrypt(){}
+  private static StringEncryptDecrypt instance = null;
 
-  public static boolean isEncrypted(String oString){
+  public static StringEncryptDecrypt getInstance(String password) throws Exception{
+    if(instance == null){
+      instance = new StringEncryptDecrypt();
+    }
+    if(CodeInstance == null){
+      CodeInstance = EnDeCode.getInstance(password);
+      CodeInstance.loadKeys(password);
+    }
+    else{
+      CodeInstance.setPassword(password);
+    }
+    return (StringEncryptDecrypt) instance;
+  }
+
+  public boolean isEncrypted(String oString){
     try{//catch all erros that can occure.
       byte[] oStringBytes = Base64.getDecoder().decode(oString);//decode the given string.
       int lenCheck = oStringBytes.length-EN.length;//checks the byte length is not going to be 0;
@@ -42,7 +58,7 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     catch(Exception e){return false;}
   }
 
-  public static String Encrypt(String oName, String key)
+  public String Encrypt(String oName)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,
@@ -51,8 +67,9 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
   IOException,
   IllegalBlockSizeException,
   InvalidAlgorithmParameterException,
-  InvalidKeySpecException{
-    Key secretKey = getKey(key,"");
+  InvalidKeySpecException,
+  Exception{
+    Key secretKey = CodeInstance.getPassword();
     Cipher cipher = Cipher.getInstance(TRANSFORM);//gets the cypher and the transform being used.
     byte[] IV = new byte[IVSIZE];//creates a new IV byte array.
     SecureRandom secureRandom = new SecureRandom();//generates a new random IV to be used.
@@ -65,7 +82,7 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     return encodedaName;//returns the new encrypted encode string.
   }
 
-  public static String Decrypt(String oName, String key)
+  public String Decrypt(String oName)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,
@@ -74,8 +91,9 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
   IOException,
   IllegalBlockSizeException,
   InvalidAlgorithmParameterException,
-  InvalidKeySpecException{
-    Key secretKey = getKey(key,"");
+  InvalidKeySpecException,
+  Exception{
+    Key secretKey = CodeInstance.getPassword();
     Cipher cipher = Cipher.getInstance(TRANSFORM);//gets the cipher with the correct transform.
     byte[] decodedoName = Base64.getDecoder().decode(oName);//decodes the string into bytes from base64.
     byte[] IV = getIV(decodedoName);
@@ -84,6 +102,23 @@ public class StringEncryptDecrypt extends EncryptDecrypt{
     decodedoName = removeTail(decodedoName);
     byte[] aName = cipher.doFinal(decodedoName);//decrypts the data.
     return new String(aName);//returns the new unencrypted string.
+  }
+
+  public String Decrypt(String oName, boolean ignoreSigniture)
+  throws
+  NoSuchPaddingException,
+  NoSuchAlgorithmException,
+  InvalidKeyException,
+  BadPaddingException,
+  IOException,
+  IllegalBlockSizeException,
+  InvalidAlgorithmParameterException,
+  InvalidKeySpecException,
+  Exception{
+    checkSigniture = ignoreSigniture;
+    String returnData = Decrypt(oName);
+    checkSigniture = true;
+    return returnData;
   }
 
 }

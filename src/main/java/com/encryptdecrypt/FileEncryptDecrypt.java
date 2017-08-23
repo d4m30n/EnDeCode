@@ -24,8 +24,24 @@ import javax.crypto.spec.IvParameterSpec;
 import java.security.InvalidAlgorithmParameterException;
 
 public class FileEncryptDecrypt extends StringEncryptDecrypt{
+  protected FileEncryptDecrypt(){}
+  private static FileEncryptDecrypt instance = null;
 
-  public static boolean isEncrypted(byte[] oData){
+  public static FileEncryptDecrypt getInstance(String password) throws Exception{
+    if(instance == null){
+      instance = new FileEncryptDecrypt();
+    }
+    if(CodeInstance == null){
+      CodeInstance = EnDeCode.getInstance(password);
+      CodeInstance.loadKeys(password);
+    }
+    else{
+      CodeInstance.setPassword(password);
+    }
+    return (FileEncryptDecrypt) instance;
+  }
+
+  public boolean isEncrypted(byte[] oData){
     //test
     try{//catches an and all errors.
       int lenCheck = oData.length-EN.length;//checks to make sure the lenght is not less than 0;
@@ -42,7 +58,7 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
     catch(Exception e){return false;}
   }
 
-  private static byte[] Apply(int cipherMode, byte[] original, String key)
+  private byte[] Apply(int cipherMode, byte[] original)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,
@@ -51,8 +67,9 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
   IOException,
   IllegalBlockSizeException,
   InvalidAlgorithmParameterException,
-  InvalidKeySpecException{
-    Key secretKey = getKey(key,"");
+  InvalidKeySpecException,
+  Exception{
+    Key secretKey = CodeInstance.getPassword();
     Cipher cipher = Cipher.getInstance(TRANSFORM);//loads in the cipher with the correct padding and aes format
     byte[] IV = new byte[IVSIZE];//creates a new IV byte array.
     if(cipherMode == Cipher.ENCRYPT_MODE){//checks to see if the file is being encrypted.
@@ -74,7 +91,7 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
     return outputBytes;//reurns the final byte array.
   }
 
-  public static byte[] Encrypt(byte[] original, String key)
+  public byte[] Encrypt(byte[] original)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,
@@ -83,11 +100,12 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
   IOException,
   IllegalBlockSizeException,
   InvalidAlgorithmParameterException,
-  InvalidKeySpecException{
-    return Apply(Cipher.ENCRYPT_MODE, original, key);
+  InvalidKeySpecException,
+  Exception{
+    return Apply(Cipher.ENCRYPT_MODE, original);
   }
 
-  public static byte[] Decrypt(byte[] original, String key)
+  public byte[] Decrypt(byte[] original)
   throws
   NoSuchPaddingException,
   NoSuchAlgorithmException,
@@ -96,9 +114,28 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
   IOException,
   IllegalBlockSizeException,
   InvalidAlgorithmParameterException,
-  InvalidKeySpecException{
+  InvalidKeySpecException,
+  Exception{
     if(!(isEncrypted(original)))
       throw new IllegalBlockSizeException("invalid Encryption");
-    return Apply(Cipher.DECRYPT_MODE, original, key);
+    return Apply(Cipher.DECRYPT_MODE, original);
+  }
+  public byte[] Decrypt(byte[] original, boolean ignoreSigniture)
+  throws
+  NoSuchPaddingException,
+  NoSuchAlgorithmException,
+  InvalidKeyException,
+  BadPaddingException,
+  IOException,
+  IllegalBlockSizeException,
+  InvalidAlgorithmParameterException,
+  InvalidKeySpecException,
+  Exception{
+    if(!(isEncrypted(original)))
+      throw new IllegalBlockSizeException("invalid Encryption");
+    checkSigniture = ignoreSigniture;
+    byte[] returnData = Apply(Cipher.DECRYPT_MODE, original);
+    checkSigniture = true;
+    return returnData;
   }
 }
