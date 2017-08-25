@@ -49,18 +49,21 @@ public class EnDeCode{
 
   protected void loadKeys(String key, boolean genNewKeys) throws Exception{
     if(!genNewKeys){
-      FileInputStream fios = new FileInputStream(DATA_STORE_DIR.getAbsolutePath()+"/"+PRIVATEKEYNAME);//trys to load in the private key from file.
-      byte[] privatek = IOUtils.toByteArray(fios);//gets the private key as a byte array.
-      FileEncryptDecrypt decrypt = FileEncryptDecrypt.getInstance(key);//gets a new instance to decrypt the private key.
-      EncryptDecrypt.checkSigniture = false;
-      privatek = decrypt.Decrypt(privatek);//decrypts the private key.
-      EncryptDecrypt.checkSigniture = true;
-      fios.close();//closes the file stream.
-      fios = new FileInputStream(DATA_STORE_DIR.getAbsolutePath()+"/"+PUBLICKEYNAME);//gets the public key.
-      byte[] publick = IOUtils.toByteArray(fios);//loads the public key into the byte array.
-      KeyFactory kf = KeyFactory.getInstance("RSA"); //gets the keyfactory instance to load public and private key.
-      privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(privatek));//sets the private key.
-      publicKey = kf.generatePublic(new X509EncodedKeySpec(publick));//sets the public key.
+      try{
+        FileInputStream fios = new FileInputStream(DATA_STORE_DIR.getAbsolutePath()+"/"+PRIVATEKEYNAME);//trys to load in the private key from file.
+        byte[] privatek = IOUtils.toByteArray(fios);//gets the private key as a byte array.
+        FileEncryptDecrypt decrypt = FileEncryptDecrypt.getInstance(key);//gets a new instance to decrypt the private key.
+        privatek = decrypt.Decrypt(privatek,false);//decrypts the private key.
+        fios.close();//closes the file stream.
+        fios = new FileInputStream(DATA_STORE_DIR.getAbsolutePath()+"/"+PUBLICKEYNAME);//gets the public key.
+        byte[] publick = IOUtils.toByteArray(fios);//loads the public key into the byte array.
+        KeyFactory kf = KeyFactory.getInstance("RSA"); //gets the keyfactory instance to load public and private key.
+        privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(privatek));//sets the private key.
+        publicKey = kf.generatePublic(new X509EncodedKeySpec(publick));//sets the public key.
+      }
+      catch(FileNotFoundException e){
+        generateKey(key);
+      }
     }
     else{
       generateKey(key);//generates a new public and private key.
