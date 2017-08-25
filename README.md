@@ -11,6 +11,7 @@ from FileEncryptDecrypt class you are also able to do string encryption there is
 The basic use of these classes is to get an instance of them using the getInstance() methord. you are required to have a string password that is going to be the
 password used for both encryption and decryption. and a boolean that indecates that you want to generate new public and private keys if left blank it will be assumed that
 you do not want to generate a new public and private key warning this will overrite your original keys and for all files signed the signiture will now be invalid.
+if the keys dont exist they will be added automaticly.
 
   FileEncryptDecrypt fileEncryptDecrypt = FileEncryptDecrypt.getInstance(password);
   StringEncryptDecrypt stringEncryptDecrypt = StringEncryptDecrypt.getInstance(password);
@@ -29,7 +30,8 @@ but i can also be a result of lost original RSA keys, to force decryption use th
 
 to achieve signing files and strings the program will generate both a public and private key that is use to generate a signiture. the private key is encrypted and saved to the file
 system when it is generated and the password used to decrypt it is the one given in the getInstance(). you will be unable to encrypt or decrypt anything if you forget the password and
-will be forced to regenerate the keys again like such.
+will be forced to regenerate the keys again like such. you only need to do this if you want to replace the keys, if the keys dont exist calling it without the boolean will automaticly generate 
+the keys.
 
   FileEncryptDecrypt fileEncryptDecrypt = FileEncryptDecrypt.getInstance(password, true);
 
