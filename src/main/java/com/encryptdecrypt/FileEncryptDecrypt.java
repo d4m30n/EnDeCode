@@ -6,17 +6,12 @@ import java.security.SecureRandom;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-
-
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.SecretKey;
 import java.security.spec.InvalidKeySpecException;
-
-
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
@@ -25,23 +20,35 @@ import java.security.InvalidAlgorithmParameterException;
 
 public class FileEncryptDecrypt extends StringEncryptDecrypt{
   protected FileEncryptDecrypt(){}
-  private static FileEncryptDecrypt instance = null;
+  private static FileEncryptDecrypt instance = null;//holds the FileEncrypt Instance.
 
   public static FileEncryptDecrypt getInstance(String password) throws Exception{
     return getInstance(password,false);
   }
 
+  /**
+    * This gets the current instance for the FileEncryptDecrypt.
+    * NOTE this algoritham will fail if the Private key is not used of the first go after that the password can be anything.
+    * @param password The password that the user wants to use for the encryption
+    * @return The instance for this class.
+    **/
   public static FileEncryptDecrypt getInstance(String password, boolean genNewKeys) throws Exception{
-    if(instance == null){
-      instance = new FileEncryptDecrypt();
+    if(instance == null){//checks if the instance is null
+      instance = new FileEncryptDecrypt();//gets new instance of the class.
     }
-    if(CodeInstance == null || genNewKeys){
-      CodeInstance = EnDeCode.getInstance(password);
-      CodeInstance.loadKeys(password, genNewKeys);
+    if(CodeInstance == null || genNewKeys){//checks if the the code instance is null or the user wants new key.
+      CodeInstance = EnDeCode.getInstance(password);//gets a new instance of EnDeCode with the password.
+      CodeInstance.loadKeys(password, genNewKeys);//loads the keys from the file.
     }
-    return (FileEncryptDecrypt) instance;
+    return (FileEncryptDecrypt) instance;//returns the new instance.
   }
 
+
+  /**
+    * This methord checks to see if the byte array it is given was encrypted by this class.
+    * @param oData passes the data byte[] to be checked.
+    * @return a boolean  true for if encrypted and false if not encrypted.
+    **/
   public boolean isEncrypted(byte[] oData){
     //test
     try{//catches an and all errors.
@@ -59,6 +66,12 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
     catch(Exception e){return false;}
   }
 
+  /**
+    * this applies the encryption to the data supplied in a byte[]
+    * @param cipherMode sets weather this methord is encrypting or decrypting.
+    * @param original the original data that is being passed into the methrod.\
+    * @return returns the encrypted or decrypted data.
+    **/
   private byte[] Apply(int cipherMode, byte[] original)
   throws
   NoSuchPaddingException,
@@ -92,6 +105,11 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
     return outputBytes;//reurns the final byte array.
   }
 
+  /**
+    * Used to encrypt the data sent to the methord.
+    * @param original the originial data before encryption.
+    * @return the data after encryption.
+    **/
   public byte[] Encrypt(byte[] original)
   throws
   NoSuchPaddingException,
@@ -103,9 +121,14 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
   InvalidAlgorithmParameterException,
   InvalidKeySpecException,
   Exception{
-    return Apply(Cipher.ENCRYPT_MODE, original);
+    return Apply(Cipher.ENCRYPT_MODE, original);//returns the encrypted byte[]
   }
 
+  /**
+    * Used to decrypt the data given to the methord.
+    * @param original the original encrypted data.
+    * @return returns the decrypted byte array.
+    **/
   public byte[] Decrypt(byte[] original)
   throws
   NoSuchPaddingException,
@@ -117,10 +140,17 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
   InvalidAlgorithmParameterException,
   InvalidKeySpecException,
   Exception{
-    if(!(isEncrypted(original)))
+    if(!(isEncrypted(original)))//checks to see if the data can be decrypted by this class.
       throw new IllegalBlockSizeException("invalid Encryption");
-    return Apply(Cipher.DECRYPT_MODE, original);
+    return Apply(Cipher.DECRYPT_MODE, original);//returns the decrypted data.
   }
+
+  /**
+    * decrypts the data but ignores the signiture checking.
+    * @param original the encrypted data.
+    * @param ignoreSigniture boolean indecating weather or not to ignore the signiture on the byte[].
+    * @return returns the decrypted data.
+    **/
   public byte[] Decrypt(byte[] original, boolean ignoreSigniture)
   throws
   NoSuchPaddingException,
@@ -132,11 +162,11 @@ public class FileEncryptDecrypt extends StringEncryptDecrypt{
   InvalidAlgorithmParameterException,
   InvalidKeySpecException,
   Exception{
-    if(!(isEncrypted(original)))
+    if(!(isEncrypted(original)))//check if the data can be decrypted.
       throw new IllegalBlockSizeException("invalid Encryption");
-    checkSigniture = ignoreSigniture;
-    byte[] returnData = Apply(Cipher.DECRYPT_MODE, original);
-    checkSigniture = true;
-    return returnData;
+    checkSigniture = ignoreSigniture;//change the signiture check boolean to what the user wants.
+    byte[] returnData = Apply(Cipher.DECRYPT_MODE, original);//returns the decrypted data.
+    checkSigniture = true;//resets the signiture check to true for other calls.
+    return returnData;//returns the decrypted data.
   }
 }

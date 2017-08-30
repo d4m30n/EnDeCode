@@ -6,17 +6,12 @@ import java.security.SecureRandom;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-
-
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.SecretKey;
 import java.security.spec.InvalidKeySpecException;
-
-
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
@@ -25,10 +20,15 @@ import java.security.InvalidAlgorithmParameterException;
 
 public class StringEncryptDecrypt extends EncryptDecrypt{
   protected StringEncryptDecrypt(){}
-  private static StringEncryptDecrypt instance = null;
+  private static StringEncryptDecrypt instance = null;//holds the instance for the class.
 
+  /**
+    * gets the instance for this class.
+    * @param password the new password to be used for this instance.
+    * @return the instance for this class.
+    **/
   public static StringEncryptDecrypt getInstance(String password) throws Exception{
-    return getInstance(password,false);
+    return getInstance(password,false);//returns the class instance.
   }
 
   public static StringEncryptDecrypt getInstance(String password, boolean genNewKeys) throws Exception{
