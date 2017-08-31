@@ -132,10 +132,8 @@ public class EncryptDecrypt{
     }
     if(checkSigniture){//checks to see if the signiture should be checked.
       byte[] sig = CodeInstance.genSigniture(data);//gets the signiture form the data.
-      for(int i = 0; i < sig.length; i++){//loops through the size of the signiture.
-        if(currentSigniture[i] != sig[i]){//checks if the two places in the array are the same.
-          throw new Exception("INVALID SIGNITURE");//throws an exception if the signitures do not match.
-        }
+      if(!(CodeInstance.verifySigniture(data, currentSigniture))){
+        throw new Exception("Invalid Signiture");
       }
     }
     return data;//returns the data without the tail on the end.

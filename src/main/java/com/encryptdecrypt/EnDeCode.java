@@ -80,6 +80,15 @@ public class EnDeCode{
     return sig;//returns the new signiture.
   }
 
+  protected boolean verifySigniture(byte[] data, byte[] signiture) throws Exception{
+    Signature sig = Signature.getInstance("SHA256withRSA");//sets the sigiture instance to be used.
+    sig.initVerify(publicKey);//add the public key to there.
+    sig.update(data);//add the data to the signiture instance.
+    boolean result = sig.verify(signiture);//check if the signiture matches
+    //add looping once more public keys are in.
+    return result;//return the result.
+  }
+
 
   private void generateKey(String key) throws Exception{
     KeyPairGenerator kpg = KeyPairGenerator.getInstance(ALGORITHAM);//set the algoritan to use for the key pair.
