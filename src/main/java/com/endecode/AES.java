@@ -1,11 +1,16 @@
 package com.endecode;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 
@@ -15,6 +20,7 @@ public class AES extends EnDeCode{
   private static MessageDigest MD;//holds the message digest that will be used for the hash.
   private static int MDLENGTH;//holds the length of the message digest.
   private Cipher cipher;
+  private boolean checkHash = true;
   static{
     try{
       MD = MessageDigest.getInstance("MD5");//get the message digest using MD5.
@@ -25,7 +31,11 @@ public class AES extends EnDeCode{
     }
   }
 
-  public AES(String password) throws Exception{
+  public AES(String password)
+  throws 
+  NoSuchAlgorithmException,//thrown if the transform is not valid.
+  NoSuchPaddingException,//thrown if the password can not be used
+  InvalidKeySpecException{//thrown if the key cant be used.
     super(password);
     this.cipher = Cipher.getInstance(TRANSFORM);
   }
@@ -37,7 +47,12 @@ public class AES extends EnDeCode{
    * @param IV the IV used in the encrpytion or decrpytion.
    * @return the encrypted or decrypted byte[].
    */
-  private byte[] apply(int cipherMode, byte[] data, byte[] IV) throws Exception{
+  private byte[] apply(int cipherMode, byte[] data, byte[] IV) 
+  throws 
+  InvalidKeyException,//thrown if the key is invalid.
+  InvalidAlgorithmParameterException,//thrown if any of the inputs are inavalid
+  IllegalBlockSizeException,//thrown if the data can not be decrypted.
+  BadPaddingException{//thrown if the data can not be encrypted.
     IvParameterSpec ivspec = new IvParameterSpec(IV);//gets the IV paramater.
     cipher.init(cipherMode, super.getPassword(), ivspec);//loads in the cipher with the mode key and iv.
     data = cipher.doFinal(data);//encrypts the bytes or decrypts depending.
@@ -49,7 +64,12 @@ public class AES extends EnDeCode{
    * @param data the byte[] that you want to encrypt.
    * @return the encrypted byte[].
    */
-  public byte[] encrypt(byte[] data) throws Exception{
+  public byte[] encrypt(byte[] data)
+  throws
+  InvalidAlgorithmParameterException,//throws if one of the parameters are invalid shoud not be thrown
+  BadPaddingException,//thrown if the data can not be encrypted.
+  InvalidKeyException,//thrown if the key used is invalid.
+  IllegalBlockSizeException{//thrown if the data can not be encrypted
     byte[] IV = getNewIV();//loads in a new IV for the encryption
     data = apply(Cipher.ENCRYPT_MODE,data,IV);//appliyes the encryption to the data with the new IV
     data = addIV(data,IV);//adds the IV to the tail of the data.
@@ -63,7 +83,12 @@ public class AES extends EnDeCode{
    * @param data the string that you want to encrypt.
    * @return a Base64 encoded string that has been encrypted.
    */
-  public String encrypt(String data) throws Exception{
+  public String encrypt(String data)
+  throws 
+  InvalidAlgorithmParameterException,//throws if one of the parameters are invalid shoud not be thrown
+  BadPaddingException,//thrown if the data can not be encrypted.
+  InvalidKeyException,//thrown if the key used is invalid.
+  IllegalBlockSizeException{//thrown if the data can not be encrypted
     byte[] byteData = encrypt(data.getBytes());//encrypts the Strings bytes
     String encodedString = Base64.getEncoder().encodeToString(byteData);//encodes the string to base64.
     return encodedString;//returns the new encoded string
@@ -74,7 +99,12 @@ public class AES extends EnDeCode{
    * @param data the encrypted string.
    * @return the original decrypted string.
    */
-  public String decrypt(String data) throws Exception{
+  public String decrypt(String data)
+  throws
+  IllegalBlockSizeException,//thrown if the data was not encrypted
+  InvalidAlgorithmParameterException,//thrown when the hash dose not match
+  InvalidKeyException,//thrown if the key is not valid will require loading again with new password.
+  BadPaddingException{//thrown if the bytes given were not encrypted.
     byte[] byteData = decrypt(Base64.getDecoder().decode(data));//decodes the string into bytes from base64.
     return new String(byteData);//returns the decrypted string.
   }
@@ -84,7 +114,12 @@ public class AES extends EnDeCode{
    * @param data the encrypted data that you want to decrypt.
    * @return the decrypted data.
    */
-  public byte[] decrypt(byte[] data) throws Exception{
+  public byte[] decrypt(byte[] data)
+  throws
+  IllegalBlockSizeException,//thrown if the data was not encrypted
+  InvalidAlgorithmParameterException,//thrown when the hash dose not match
+  InvalidKeyException,//thrown if the key used is not valid will require loading this again with new password.
+  BadPaddingException{//thrown if the bytes given were not encrypted in the first place.
     data = removeEN(data);//remove the encryption byte[] from the data.
     data = removeHash(data);//remove the hash from the data this also checks the hash.
     byte[] IV = getIV(data);//get the IV used for encryption.
@@ -148,13 +183,25 @@ public class AES extends EnDeCode{
    * @param data the data with the hash array on the end of the data.
    * @return a byte[] that dose not contain the hash on the end.
    */
-  private byte[] removeHash(byte[] data) throws Exception{
+  private byte[] removeHash(byte[] data) 
+  throws 
+  InvalidAlgorithmParameterException{//throws when the hash of the data dose not match
     byte[] tmp = data;//create a tmp array to hold the data.
     byte[] hash = getHash(tmp);//get the hash of the tmp data.
     data = new byte[tmp.length-hash.length];//create new array smaller that the hash size.
     System.arraycopy(tmp,0,data,0,data.length);//copy the original data into the new array.
-    if(!validateHash(data,hash)) throw new Exception("Invalid Hash");//check the two hashes and throw exception if invalid.
+    if(checkHash){
+      if(!validateHash(data,hash)) throw new InvalidAlgorithmParameterException("Invalid Hash");//check the two hashes and throw exception if invalid.
+    }
+    checkHash = true;
     return data;//return the data[] without the hash.
+  }
+
+  /**
+   * When called the next time that you decrypt the hash will be skiped, after the next decrypt it will then check the hash afterwareds.
+   */
+  public void skipHash(){
+    checkHash = false;//sets it so that the next check will skip checking the hash
   }
 
   /**

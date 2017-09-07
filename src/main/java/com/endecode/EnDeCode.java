@@ -1,12 +1,17 @@
 package com.endecode;
 
+import java.nio.file.NoSuchFileException;
 import java.security.Key;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.management.openmbean.InvalidKeyException;
 
 class EnDeCode{
 
@@ -18,7 +23,10 @@ class EnDeCode{
   private static final byte[] SALT = "dd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315ddd54f6g7rv2315d".getBytes();//the salt being used for the password
   private static final byte[] EN = "e".getBytes();
 
-  protected EnDeCode(String password) throws Exception{
+  protected EnDeCode(String password)
+  throws
+  NoSuchAlgorithmException,//thrown if the algoritahm for the key is invalid.
+  InvalidKeySpecException{//throws if the key can not be used.
     this.password = getKey(password);
   }
 
@@ -27,7 +35,10 @@ class EnDeCode{
    * @param password the password the user is using.
    * @return the secrate key that was generated
    */
-  private static SecretKey getKey(String password) throws Exception{
+  private static SecretKey getKey(String password)
+  throws
+  NoSuchAlgorithmException,//thrown if the algoritham is wrong and cant be found.
+  InvalidKeySpecException{//thrown if the key cant be used.
     SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");//sets the deviation function to be used.
     PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), SALT ,65536, 128);//gets the new 128 key to be used.
     SecretKey tmp = factory.generateSecret(spec);//getst the secretKey from the PBEKeySpec.
@@ -55,8 +66,10 @@ class EnDeCode{
     return isEncrypted(Base64.getDecoder().decode(data));
   }
 
-  protected byte[] removeEN(byte[] data) throws Exception{
-    if(!isEncrypted(data)) throw new Exception(DNE);//checks if the data has the EN byte[]
+  protected byte[] removeEN(byte[] data)
+  throws 
+  IllegalBlockSizeException{//thrown if the EN byte[] cant be found on the end of the data.
+    if(!isEncrypted(data)) throw new IllegalBlockSizeException(DNE);//checks if the data has the EN byte[]
     byte[] tmp = data;//holds the old data with the EN byte[]
     data = new byte[data.length - EN.length];//creates a new byte[] for the datai.
     System.arraycopy(tmp,0,data,0,data.length);//copy all the data back from tmp

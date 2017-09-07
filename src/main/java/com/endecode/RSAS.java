@@ -4,23 +4,38 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.PrivateKey;
+import java.security.SignatureException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 
 public class RSAS extends AES{
 
   //Static Final Veriables
   protected static final int SIGSIZE = 128;//this is the size of a signature based off of a key size of 1024.
   private static final String SIGSTRING = "SHA256withRSA";//the signature to use when generating sinatures for the data.
+  private static Signature sig;
+  static{
+    try{
+      sig = Signature.getInstance(SIGSTRING);
+    }
+    catch(NoSuchAlgorithmException nsae){
+      System.exit(1);
+    }
+  }
   private static final String DEFAULTSAVE = ".credentials";//The default place to store the keys.
   private static final String PRIVATENAME = "privateKey";//The name for the private key.
   private static final String PUBLICNAME = "publicKey";//The name for the public keys.
@@ -121,12 +136,23 @@ public class RSAS extends AES{
   }
 
   @Override
-  public byte[] encrypt(byte[] data) throws Exception{
+  public byte[] encrypt(byte[] data)
+  throws
+  InvalidAlgorithmParameterException,//throws if one of the parameters are invalid shoud not be thrown
+  BadPaddingException,//thrown if the data can not be encrypted.
+  InvalidKeyException,//thrown if the key used is invalid.
+  IllegalBlockSizeException{//thrown if the data can not be encrypted
     data = super.encrypt(data);//encrypts the incoming data adding AES tails.
     data = addSignature(data);//generates a signiture for the encrypted data.
     return data;//returns the encrypted data with the tail.
   }
-  public String encrypt(String data) throws Exception{
+
+  public String encrypt(String data)
+  throws
+  InvalidAlgorithmParameterException,//throws if one of the parameters are invalid shoud not be thrown
+  BadPaddingException,//thrown if the data can not be encrypted.
+  InvalidKeyException,//thrown if the key used is invalid.
+  IllegalBlockSizeException{//thrown if the data can not be encrypted
     byte[] byteData = data.getBytes();
     byteData = encrypt(byteData);
     data = Base64.getEncoder().encodeToString(byteData);
@@ -134,12 +160,22 @@ public class RSAS extends AES{
   }
 
   @Override
-  public byte[] decrypt(byte[] data) throws Exception{
+  public byte[] decrypt(byte[] data)
+  throws
+  IllegalBlockSizeException,//thrown if the data was not encrypted
+  InvalidAlgorithmParameterException,//thrown when the hash dose not match
+  InvalidKeyException,//thrown if the key used is not valid will require loading this again with new password.
+  BadPaddingException{//thrown if the bytes given were not encrypted in the first place.
     data = removeSigniture(data);
     data = super.decrypt(data);//decrypts the data with signiture removed.
     return data;//returns the decrypted data.
   }
-  public String decrypt(String data) throws Exception{
+  public String decrypt(String data)
+  throws
+  IllegalBlockSizeException,//thrown if the data was not encrypted
+  InvalidAlgorithmParameterException,//thrown when the hash dose not match
+  InvalidKeyException,//thrown if the key used is not valid will require loading this again with new password.
+  BadPaddingException{//thrown if the bytes given were not encrypted in the first place.
     byte[] byteData = Base64.getDecoder().decode(data);
     byteData = decrypt(byteData);
     data = new String(byteData);
@@ -161,16 +197,21 @@ public class RSAS extends AES{
     }
   }
 
-  private boolean valSigniture(byte[] data, byte[] signature) throws Exception{
-    Signature sig = Signature.getInstance(SIGSTRING);//loads in the signature
-    for(PublicKey p : publicKeys){//checks all the public keys avalable.
-      sig.initVerify(p);//load in the public key.
-      sig.update(data);//load in the data.
-      boolean result = sig.verify(signature);//check the signiture agains the current one.
-      if(result)//check if the result is true.
-        return true;//return true if a public key match is found.
+  private boolean valSigniture(byte[] data, byte[] signature){
+    try{
+      Signature sig = Signature.getInstance(SIGSTRING);//loads in the signature
+      for(PublicKey p : publicKeys){//checks all the public keys avalable.
+        sig.initVerify(p);//load in the public key.
+        sig.update(data);//load in the data.
+        boolean result = sig.verify(signature);//check the signiture agains the current one.
+        if(result)//check if the result is true.
+          return true;//return true if a public key match is found.
+      }
+      return false;//return false after checking all keys and none found.
     }
-    return false;//return false after checking all keys and none found.
+    catch(Exception se){
+      return false;
+    }
   }
 
   /**
@@ -178,11 +219,18 @@ public class RSAS extends AES{
    * @param data the data to generate a signature
    * @return the signature that has been generated.
    */
-  private byte[] genSigniture(byte[] data) throws Exception{
-    Signature sig = Signature.getInstance(SIGSTRING);//gets the signiture instance.
-    sig.initSign(privateKey);//loads in the key that will be used.
-    sig.update(data);//loads in the data to sign
-    return sig.sign();//returns the byte[] signiture.
+  private byte[] genSigniture(byte[] data)
+  throws
+  InvalidKeyException,
+  BadPaddingException{
+    try{
+      sig.initSign(privateKey);//loads in the key that will be used.
+      sig.update(data);//loads in the data to sign
+      return sig.sign();//returns the byte[] signiture.
+    }
+    catch(SignatureException se){
+      throw new BadPaddingException("Unable to generate new signature");
+    }
   }
 
   /**
@@ -190,10 +238,14 @@ public class RSAS extends AES{
    * @param data the data with the signature on the end.
    * @return the data without the signature on the end.
    */
-  protected byte[] removeSigniture(byte[] data) throws Exception{
+  protected byte[] removeSigniture(byte[] data)
+  throws 
+  BadPaddingException,
+  InvalidAlgorithmParameterException,
+  InvalidKeyException{
     byte[] tmp = data;//holds the data with the signiture.
     byte[] sig = new byte[SIGSIZE];//holds just the signiture.
-    if(tmp.length-SIGSIZE <= 0) throw new Exception("The data is not valid");
+    if(tmp.length-SIGSIZE <= 0) throw new BadPaddingException("The data is not valid");
     data = new byte[tmp.length-SIGSIZE];//holds just the data.
     for(int i = 0; i < tmp.length; i++){
       if(i == tmp.length-SIGSIZE){//checks what part of the array i is at.
@@ -205,7 +257,7 @@ public class RSAS extends AES{
     }
     //remove the signituer from the data
     if(!valSigniture(data,sig))//checks if the signiture is valid.
-      throw new Exception("Signitures Do Not Match");
+      throw new InvalidAlgorithmParameterException("Signitures Do Not Match");
     return data;//returns just the data.
   }
 
@@ -214,7 +266,10 @@ public class RSAS extends AES{
    * @param data the data[] to sign and add the signature to the end of.
    * @return the data with the signature on the end.
    */
-  protected byte[] addSignature(byte[] data) throws Exception{
+  protected byte[] addSignature(byte[] data)
+  throws
+  InvalidKeyException,
+  BadPaddingException{
     byte[] tmp = data;
     byte[] sig = genSigniture(tmp);
     data = new byte[tmp.length+SIGSIZE];
