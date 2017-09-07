@@ -1,8 +1,9 @@
 package com.endecode;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -13,49 +14,80 @@ import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-
-import org.apache.commons.io.IOUtils;
+import java.util.Base64;
 
 public class RSAS extends AES{
 
   //Static Final Veriables
-  protected static final int SIGSIZE = 128;
-  private static final String SIGSTRING = "SHA256withRSA";
-  private static final String DEFAULTSAVE = ".credentials";
-  private static final String PRIVATENAME = "privateKey";
-  private static final String PUBLICNAME = "publicKey";
-  protected static final String ALGORITHAM = "RSA";
+  protected static final int SIGSIZE = 128;//this is the size of a signature based off of a key size of 1024.
+  private static final String SIGSTRING = "SHA256withRSA";//the signature to use when generating sinatures for the data.
+  private static final String DEFAULTSAVE = ".credentials";//The default place to store the keys.
+  private static final String PRIVATENAME = "privateKey";//The name for the private key.
+  private static final String PUBLICNAME = "publicKey";//The name for the public keys.
+  protected static final String ALGORITHAM = "RSA";//The algoritham to use.
 
-protected PrivateKey privateKey;
-protected ArrayList<PublicKey> publicKeys;
+  protected PrivateKey privateKey;//The veriable to hold the private key.
+  protected ArrayList<PublicKey> publicKeys;//the veriable to hold the public key.
 
+  /**
+   * This is the basic constructor that just takes a password to use.
+   * @param password this is the password being used for encryption
+   */
   public RSAS(String password) throws Exception{
-    this(password,DEFAULTSAVE,false);
+    this(password,DEFAULTSAVE,false);//calls the default constructor.
   }
 
+  /**
+   * This is the second constructor that allows the user to set a save location for where to load the keys.
+   * @param password the password to use for encryption and decryption.
+   * @param saveLocation the location of the keys if on other than the default is used.
+   */
   public RSAS(String password,String saveLocation) throws Exception{
-    this(password,saveLocation,false);
+    //remove the / if it is on the end of the saveLocation.
+    this(password,saveLocation,false);//calls the default constructor
   }
 
+  /**
+   * This is another constructor allowing the user to set the password and generate new keys.
+   * @param password the password to use for encryption and decryption
+   * @param genNewKeys a boolean indecating weather or not to generate new keys.
+   */
+  public RSAS(String password,boolean genNewKeys) throws Exception{
+    this(password,DEFAULTSAVE,genNewKeys);
+  }
+
+  /**
+   * This is the main consturctor that allows the user to set all the paramaters avalable.
+   * @param password the password used for encryption and decryption
+   * @param saveLocation the location to save or find the keys.
+   * @param genNewKeys boolean indecating weather or not to generate new keys to use.
+   */
   public RSAS(String password,String saveLocation, boolean genNewKeys) throws Exception{
-    super(password);
-    if(saveLocation == null) saveLocation = DEFAULTSAVE;
-    if(genNewKeys){
-      if(!genKeys(saveLocation)) throw new Exception("Could Not Generate New Keys");
+    super(password);//call the super constructor with the password being used.
+    if(saveLocation == null) saveLocation = DEFAULTSAVE;//if the save location is null pass in the default.
+    if(password == null) throw new Exception("Password Cant be null");//checks to see if the password is null.
+    if(genNewKeys){//check if the user wants new keys generated.
+      if(!genKeys(saveLocation)) throw new Exception("Could Not Generate New Keys");//throw new exception in the keys could not be generated.
     }
     else{
-      loadKeys(saveLocation);
+      loadKeys(saveLocation);//attempt to load in the keys from file.
     }
   }
 
+
+
+  /**
+   * Loads in the keys that are being used from the save location.
+   * @param saveLocation the location of where the keys can be found.
+   * @return weather the keys were loaded or not.
+   */
   private boolean loadKeys(String saveLocation) throws Exception{
     try{
-      FileInputStream fios = new FileInputStream(saveLocation+"/"+PRIVATENAME);//trys to load in the private key from file.
-      byte[] privatek = IOUtils.toByteArray(fios);//gets the private key as a byte array.
+      File file = new File(saveLocation+"/"+PRIVATENAME);//trys to load in the private key from file.
+      byte[] privatek = Files.readAllBytes(file.toPath());
       privatek = super.decrypt(privatek);//decrypt the private key.
-      fios.close();//closes the file stream.
-      fios = new FileInputStream(saveLocation+"/"+PUBLICNAME);//gets the public key.
-      byte[] publick = IOUtils.toByteArray(fios);//loads the public key into the byte array.
+      file = new File(saveLocation+"/"+PUBLICNAME);//gets the public key.
+      byte[] publick = Files.readAllBytes(file.toPath());
       KeyFactory kf = KeyFactory.getInstance("RSA"); //gets the keyfactory instance to load public and private key.
       privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(privatek));//sets the private key.
       publicKeys.add(kf.generatePublic(new X509EncodedKeySpec(publick)));//sets the public key.
@@ -94,12 +126,39 @@ protected ArrayList<PublicKey> publicKeys;
     data = addSignature(data);//generates a signiture for the encrypted data.
     return data;//returns the encrypted data with the tail.
   }
+  public String encrypt(String data) throws Exception{
+    byte[] byteData = data.getBytes();
+    byteData = encrypt(byteData);
+    data = Base64.getEncoder().encodeToString(byteData);
+    return data;
+  }
 
   @Override
   public byte[] decrypt(byte[] data) throws Exception{
     data = removeSigniture(data);
     data = super.decrypt(data);//decrypts the data with signiture removed.
     return data;//returns the decrypted data.
+  }
+  public String decrypt(String data) throws Exception{
+    byte[] byteData = Base64.getDecoder().decode(data);
+    byteData = decrypt(byteData);
+    data = new String(byteData);
+    return data;
+  }
+
+  /**
+   * Checks to see if the data given is encrypted or not.
+   * NOTE: this will also validate the signature at the same time.
+   * @param data the data that needs to be checked.
+   * @return boolean indecating weather the data is encrypted or not.
+   */
+  public boolean isEncrypted(byte[] data){
+    try{
+      return super.isEncrypted(removeSigniture(data));//call the super class with the signature removed.
+    }
+    catch(Exception e){
+      return false;//return false if the signatuer is not valid.
+    }
   }
 
   private boolean valSigniture(byte[] data, byte[] signature) throws Exception{
@@ -134,6 +193,7 @@ protected ArrayList<PublicKey> publicKeys;
   protected byte[] removeSigniture(byte[] data) throws Exception{
     byte[] tmp = data;//holds the data with the signiture.
     byte[] sig = new byte[SIGSIZE];//holds just the signiture.
+    if(tmp.length-SIGSIZE <= 0) throw new Exception("The data is not valid");
     data = new byte[tmp.length-SIGSIZE];//holds just the data.
     for(int i = 0; i < tmp.length; i++){
       if(i == tmp.length-SIGSIZE){//checks what part of the array i is at.

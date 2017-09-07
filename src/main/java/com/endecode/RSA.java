@@ -6,7 +6,7 @@ public class RSA extends RSAS{
    * takes a password and calls the super class
    * @param password the password to be used for encryption.
    */
-  public RSA(String password){
+  public RSA(String password) throws Exception{
     super(password);
   }
 
