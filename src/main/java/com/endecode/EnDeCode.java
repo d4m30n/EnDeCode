@@ -1,6 +1,5 @@
 package com.endecode;
 
-import java.nio.file.NoSuchFileException;
 import java.security.Key;
 
 import java.security.NoSuchAlgorithmException;
@@ -11,7 +10,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.management.openmbean.InvalidKeyException;
 
 class EnDeCode{
 

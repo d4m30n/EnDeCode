@@ -2,7 +2,6 @@ package com.endecode;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -71,9 +70,9 @@ public class AES extends EnDeCode{
   InvalidKeyException,//thrown if the key used is invalid.
   IllegalBlockSizeException{//thrown if the data can not be encrypted
     byte[] IV = getNewIV();//loads in a new IV for the encryption
+    data = addHash(data);//adds the hash to the unencrypted data.
     data = apply(Cipher.ENCRYPT_MODE,data,IV);//appliyes the encryption to the data with the new IV
     data = addIV(data,IV);//adds the IV to the tail of the data.
-    data = addHash(data);//adds the hash to the tail of the data.
     data = super.addEN(data);//adds the en byte[] to the end of the data
     return data;//will return the encrypted data.
   }
@@ -121,10 +120,10 @@ public class AES extends EnDeCode{
   InvalidKeyException,//thrown if the key used is not valid will require loading this again with new password.
   BadPaddingException{//thrown if the bytes given were not encrypted in the first place.
     data = removeEN(data);//remove the encryption byte[] from the data.
-    data = removeHash(data);//remove the hash from the data this also checks the hash.
     byte[] IV = getIV(data);//get the IV used for encryption.
     data = removeIV(data);//remove the IV from the data.
     data = apply(Cipher.DECRYPT_MODE,data,IV);//decrypt the data and save it to the data.
+    data = removeHash(data);//remove the hash from the data this also checks the hash.
     return data;//will be the decrypted data.
   }
 
