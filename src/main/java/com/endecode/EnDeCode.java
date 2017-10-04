@@ -60,10 +60,20 @@ class EnDeCode{
     return true;
   }
 
+  /**
+   * Checks to see if the String being given is encrypted or not
+   * @param data The string that needs to be checked.
+   * @return True is the data is encrypted.
+   **/
   public boolean isEncrypted(String data){
     return isEncrypted(Base64.getDecoder().decode(data));
   }
 
+  /**
+   * Removes the EN byte array from the end of the data.
+   * @param data The data to have the EN array removed from.
+   * @return The data without the EN byte array on the end.
+   **/
   protected byte[] removeEN(byte[] data)
   throws 
   IllegalBlockSizeException{//thrown if the EN byte[] cant be found on the end of the data.
@@ -74,6 +84,11 @@ class EnDeCode{
     return data;//return the new data[].
   }
 
+  /**
+   * Adds the EN byte array to the end of the data 
+   * @param data The data to had the EN byte array added to
+   * @return The data with the EN byte array on the end.
+   **/
   protected byte[] addEN(byte[] data){
     byte[] tmp = data;
     data = new byte[tmp.length+EN.length];

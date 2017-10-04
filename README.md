@@ -2,42 +2,36 @@
 Just a small libary using java encryption
 
 This is a libary that will encrypt both byte[] arrays and Strings I am using Strings to encrypt the file name.
-the string and file encryption is split into two classes
 
-  StringEncryptDecrypt
-  FileEncryptDecrypt
+This class is very simple, to start you need to import the encryption libary AES like such
 
-from FileEncryptDecrypt class you are also able to do string encryption there is no need to call StringEncryptDecrypt if you are using FileEncryptDecrypt.
-The basic use of these classes is to get an instance of them using the getInstance() methord. you are required to have a string password that is going to be the
-password used for both encryption and decryption. and a boolean that indecates that you want to generate new public and private keys if left blank it will be assumed that
-you do not want to generate a new public and private key warning this will overrite your original keys and for all files signed the signiture will now be invalid.
-if the keys dont exist they will be added automaticly.
+  com.endecode.AES;
 
-  FileEncryptDecrypt fileEncryptDecrypt = FileEncryptDecrypt.getInstance(password);
-  StringEncryptDecrypt stringEncryptDecrypt = StringEncryptDecrypt.getInstance(password);
+There is other libarys such as RSAS and RSA but these are not full implemented and tested yet so best to avoid using them.
 
-to encrypt and decrypt a byte array or a string you just need to call the Encrypt() and Decrypt() methrods if you are using FileEncryptDecrypt you use the same methords for
-encrypting a string as well just pass a string as the parameter insted of a byte array.
+To start using the libary you need data to encrypte at the moment it supports byte arrays and strings, your string will be
+returned using Base64 encoding. to start encrypting data you need to create a new instance of the AES class and pass in a 
+password that will be used NOTE this password will be use for all encrypts and decrypts with no option at the moment to change it
+if you want to change the password generate a new instance of the class.
 
-  fileEncryptDecrypt.Encrypt(byte[] or String);
-  fileEncryptDecrypt.Decrypt(byte[] or String);
+  AES aes = new AES(<password>);
 
-when decrypting anything be it a file or a string there is always going to be a signiture check by default however this signiture check can be avoided
-by adding a boolean as one of the parameters when decrypting this is not recomended as the invalid signiture is likly due to a modified file from the one original Encrypted
-but i can also be a result of lost original RSA keys, to force decryption use this methrod below
+To then start encrypting data use the encrypt function this is the same for both byte arrays and strings the only diffrence is the 
+format of the data you pass in strings will be encoded using base64 so if you want to use a diffrent encoding pass the string in as a
+byte array just make sure you do the same when decrypting the string as well.
 
-  fileEncryptDecrypt.Decrypt(byte[] or String, false);
+  aes.encrypt(new byte[20]); //the byte array to encrypt
+  ase.encrypt("String to encrypt"); //the string the encrypt
 
-to achieve signing files and strings the program will generate both a public and private key that is use to generate a signiture. the private key is encrypted and saved to the file
-system when it is generated and the password used to decrypt it is the one given in the getInstance(). you will be unable to encrypt or decrypt anything if you forget the password and
-will be forced to regenerate the keys again like such. you only need to do this if you want to replace the keys, if the keys dont exist calling it without the boolean will automaticly generate 
-the keys.
+To decrpyt the data it is just a matter of calling the decrypt function this is the same as above supports strings and byte array using the 
+same name
 
-  FileEncryptDecrypt fileEncryptDecrypt = FileEncryptDecrypt.getInstance(password, true);
+  aes.decrypt(new byte[10]); //the byte array to decrypt
+  aes.decrypt("String to decrpyt"); //the string to decrypt
 
-there is also a methrod called isEncrypted() this is what it say when called it will return a boolean indecating wether or not the file is valid and was encrypted by this program.
-this is called by default when decrypting but can be nice to know before hand as all it will do is return the same byte[] giving no indecation that isEncrypted was false.
+If the data can not be verified with the EN byte array then it will through an IllegalBlockSizeException indecating that this data is either not encrypted using this 
+libary or the data is not encrypted witch is true is up to you but either way the data can not be decrypted if you want to verify this before hand and get a boolean insted
+of an exception you can use the isEncrypted() function to get this information this is the same as the ones above suppoting both byte arrays and Strings.
 
-FUTURE
-in the future i plan on adding a recovary option where if you remember the password the file can be recoved by providing this password but note that this option will not be able to validate
-any signiture on the file.
+  aes.isEncrypted(new byte[10]); //the byte array to check
+  aes.isEncrypted("String to check"); //the string to check

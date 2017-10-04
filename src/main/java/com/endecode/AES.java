@@ -16,19 +16,10 @@ import javax.crypto.spec.IvParameterSpec;
 public class AES extends EnDeCode{
 
   private static final int IVSIZE = 16;//the size of the IV generated
-  private static MessageDigest MD;//holds the message digest that will be used for the hash.
+  private static MessageDigest MD = null;//holds the message digest that will be used for the hash.
   private static int MDLENGTH;//holds the length of the message digest.
   private Cipher cipher;
   private boolean checkHash = true;
-  static{
-    try{
-      MD = MessageDigest.getInstance("MD5");//get the message digest using MD5.
-      MDLENGTH = MD.getDigestLength();//get the lenght of the digest that is generated.
-    }
-    catch(NoSuchAlgorithmException nsae){
-      System.exit(1);//exit if the algoritham is wrong.
-    }
-  }
 
   public AES(String password)
   throws 
@@ -36,6 +27,10 @@ public class AES extends EnDeCode{
   NoSuchPaddingException,//thrown if the password can not be used
   InvalidKeySpecException{//thrown if the key cant be used.
     super(password);
+    if(MD == null){
+      MD = MessageDigest.getInstance("MD5");
+      MDLENGTH = MD.getDigestLength();
+    }
     this.cipher = Cipher.getInstance(TRANSFORM);
   }
 
